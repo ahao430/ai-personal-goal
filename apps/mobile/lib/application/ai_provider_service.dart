@@ -1,3 +1,4 @@
+import '../core/ai/chat_client.dart';
 import '../core/ai/model_list_client.dart';
 import '../domain/ai/ai_model_info.dart';
 import '../domain/ai/ai_provider.dart';
@@ -13,11 +14,14 @@ class AiProviderService {
     this._providers,
     this._settings, {
     ModelListClient? modelListClient,
-  }) : modelListClient = modelListClient ?? ModelListClient();
+    ChatClient? chatClient,
+  })  : modelListClient = modelListClient ?? ModelListClient(),
+        _chatClient = chatClient ?? ChatClient();
 
   final AiProviderRepository _providers;
   final AppSettingsRepository _settings;
   final ModelListClient modelListClient;
+  final ChatClient _chatClient;
 
   // ── 供应商 ─────────────────────────────────────────────
 
@@ -116,6 +120,30 @@ class AiProviderService {
 
   Future<void> clearDefaultModel() =>
       _settings.delete(kDefaultModelSettingKey);
+
+  /// 测试对话连通性：用指定供应商 + 模型发一次最小请求。
+  ///
+  /// 模型列表只能验证 list 权限；本方法验证 chat 权限 / Key 有效性 /
+  /// 模型名可用。成功返回 (模型回复, 耗时毫秒)，失败抛 ChatException。
+  Future<(String, int)> testModel(String providerId, String modelId) async {
+    final provider =
+        (await allProviders()).where((p) => p.id == providerId).firstOrNull;
+    if (provider == null) {
+      throw StateError('供应商不存在: $providerId');
+    }
+    final stopwatch = Stopwatch()..start();
+    final reply = await _chatClient.complete(
+      provider: provider,
+      model: modelId,
+      messages: const [ChatMessage.user('ping')],
+    );
+    stopwatch.stop();
+    final text = reply.text?.trim() ?? '';
+    if (text.isEmpty) {
+      throw ChatException('模型返回了空回复');
+    }
+    return (text, stopwatch.elapsedMilliseconds);
+  }
 
   /// 模型链：默认模型优先，其余已启用供应商各补一个候选模型。
   ///

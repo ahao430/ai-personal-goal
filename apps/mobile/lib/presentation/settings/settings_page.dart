@@ -28,6 +28,10 @@ class _SettingsPageState extends State<SettingsPage> {
   List<AiModelInfo> _models = [];
   bool _loading = true;
   bool _fetchingModels = false;
+  bool _testingModel = false;
+
+  /// 上次测试结果：null = 未测；(ok, 文本, 耗时ms)
+  (bool, String, int)? _testResult;
 
   AiProviderService get _service => widget.services.aiProviderService;
 
@@ -295,6 +299,25 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Future<void> _testModel(String? modelId) async {
+    if (modelId == null || _testingModel) return;
+    setState(() {
+      _testingModel = true;
+      _testResult = null;
+    });
+    try {
+      final (text, elapsed) =
+          await _service.testModel(_selectedProviderId!, modelId);
+      if (!mounted) return;
+      setState(() => _testResult = (true, text, elapsed));
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _testResult = (false, e.toString(), 0));
+    } finally {
+      if (mounted) setState(() => _testingModel = false);
+    }
+  }
+
   Widget _defaultModelSection(ThemeData theme) {
     final enabledProviders =
         _providers.where((p) => p.enabled).toList(growable: false);
@@ -393,8 +416,69 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              FilledButton.tonalIcon(
+                onPressed: selectedModelId == null || _testingModel
+                    ? null
+                    : () => _testModel(selectedModelId),
+                icon: _testingModel
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const FaIcon(FontAwesomeIcons.towerBroadcast, size: 15),
+                label: Text(_testingModel ? '测试中…' : '测试对话'),
+              ),
+            ],
+          ),
+          if (_testResult case final result?) ...[
+            const SizedBox(height: 8),
+            _testResultCard(theme, result),
+          ],
         ],
       ],
+    );
+  }
+
+  /// 测试结果内联卡片：成功绿色（回复摘要 + 耗时），失败红色（错误原因）。
+  Widget _testResultCard(ThemeData theme, (bool, String, int) result) {
+    final (ok, text, elapsed) = result;
+    final color = ok ? const Color(0xFF3E8E5A) : AppPalette.coral;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FaIcon(
+            ok
+                ? FontAwesomeIcons.circleCheck
+                : FontAwesomeIcons.circleExclamation,
+            size: 15,
+            color: color,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              ok ? '连接成功（${elapsed}ms）：$text' : '连接失败：$text',
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: color,
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

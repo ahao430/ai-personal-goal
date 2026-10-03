@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 import 'package:ai_goal/application/ai_provider_service.dart';
+import 'package:ai_goal/core/ai/chat_client.dart';
 import 'package:ai_goal/core/ai/model_list_client.dart';
 import 'package:ai_goal/data/database/app_database.dart';
 import 'package:ai_goal/data/repositories/sqlite_ai_provider_repository.dart';
@@ -97,4 +98,76 @@ void main() {
     await service.setProviderEnabled(p.id, false);
     expect((await service.allProviders()).single.enabled, isFalse);
   });
+
+  group('testModel（测试对话连通性）', () {
+    test('成功：返回模型回复与耗时，请求带 user 消息与模型名', () async {
+      final provider = await service.addProvider(mk());
+      final captured = <http.Request>[];
+      final testing = AiProviderService(
+        SqliteAiProviderRepository(db.database),
+        SqliteAppSettingsRepository(db.database),
+        chatClient: ChatClient(client: MockClient((request) async {
+          captured.add(request);
+          return http.Response(
+            '{"choices":[{"message":{"role":"assistant","content":"pong"}}]}',
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        }),
+      ),
+      );
+
+      final (text, elapsed) = await testing.testModel(provider.id, 'glm-4.6');
+      expect(text, 'pong');
+      expect(elapsed, greaterThanOrEqualTo(0));
+
+      final request = captured.single;
+      expect(request.url.toString(), endsWith('/chat/completions'));
+      expect(request.body, contains('"model":"glm-4.6"'));
+      expect(request.body, contains('"content":"ping"'));
+    });
+
+    test('401 → 抛 ChatException（Key 无效场景）', () async {
+      final provider = await service.addProvider(mk());
+      final testing = AiProviderService(
+        SqliteAiProviderRepository(db.database),
+        SqliteAppSettingsRepository(db.database),
+        chatClient: ChatClient(
+          client: MockClient(
+            (_) async => http.Response('{"error":"unauthorized"}', 401),
+          ),
+        ),
+      );
+      await expectLater(
+        testing.testModel(provider.id, 'glm-4.6'),
+        throwsA(isA<ChatException>()),
+      );
+    });
+
+    test('供应商不存在 → StateError；空回复 → ChatException', () async {
+      expect(
+        () => service.testModel('provider_missing', 'm'),
+        throwsStateError,
+      );
+
+      final provider = await service.addProvider(mk());
+      final empty = AiProviderService(
+        SqliteAiProviderRepository(db.database),
+        SqliteAppSettingsRepository(db.database),
+        chatClient: ChatClient(
+          client: MockClient(
+            (_) async => http.Response(
+              '{"choices":[{"message":{"role":"assistant","content":null}}]}',
+              200,
+            ),
+          ),
+        ),
+      );
+      await expectLater(
+        empty.testModel(provider.id, 'glm-4.6'),
+        throwsA(isA<ChatException>()),
+      );
+    });
+  });
 }
+
