@@ -1,0 +1,8 @@
+{
+  "name": "@ai-goal/domain",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "description": "领域模型与类型定义（TS 侧，供 Web/Desktop 共享）。移动端事实源在 apps/mobile 的 Dart domain 层。"
+}

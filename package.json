@@ -1,0 +1,16 @@
+{
+  "name": "ai-goal",
+  "version": "0.1.0",
+  "comment-versioning": "monorepo 工作区自身版本，独立演进；各 app 版本各自管理（mobile 看 apps/mobile/pubspec.yaml），不与本字段同步。",
+  "private": true,
+  "description": "AI 驱动的个人目标管理 App。Local-first：SQLite 是事实源，云端是可选增强。",
+  "scripts": {
+    "mobile:get": "cd apps/mobile && flutter pub get",
+    "mobile:analyze": "cd apps/mobile && flutter analyze",
+    "mobile:test": "cd apps/mobile && flutter test",
+    "mobile:run": "cd apps/mobile && flutter run"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

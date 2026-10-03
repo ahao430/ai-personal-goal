@@ -1,0 +1,32 @@
+# Node / pnpm
+node_modules/
+.pnpm-store/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+*.iml
+.fvm/
+
+# IDE
+.idea/
+*.swp
+
+# macOS
+.DS_Store
+
+# Test / coverage
+coverage/
+lcov.info
+
+# Secrets
+.env
+.env.*
+
+# Misc
+out/
+.v2c/
+.video_agent/

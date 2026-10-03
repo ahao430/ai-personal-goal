@@ -1,0 +1,8 @@
+{
+  "name": "@ai-goal/config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "description": "monorepo 公共配置（lint / tsconfig / 环境约定）。"
+}

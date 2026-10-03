@@ -1,0 +1,71 @@
+# mobile 发版：tag mobile-v* → 构建 release APK → 挂到 GitHub Release
+#
+# 触发条件：推送形如 mobile-v1.0.1 的 tag（mobile 前缀 = 只发 mobile app；
+# 后续其他 app 用各自前缀，如 api-v0.1.0，互不干扰）。
+#
+# 流程：本地 bump apps/mobile/pubspec.yaml 版本 → commit →
+#   git tag mobile-v<版本> && git push origin mobile-v<版本>
+# APK 出现在 GitHub Release 页面，不进 git 仓库。
+#
+# 当前使用 debug 签名（build.gradle 配置），仅限侧载安装；
+# 要正式签名分发时：keystore 进 Secrets，在此补 signingConfig 注入步骤。
+
+name: mobile-release
+
+on:
+  push:
+    tags: ['mobile-v*']
+
+defaults:
+  run:
+    working-directory: apps/mobile
+
+env:
+  FLUTTER_VERSION: '3.38.9'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: build & upload
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Build release APKs
+        run: flutter build apk --release --split-per-abi
+
+      - name: Resolve version
+        id: ver
+        run: echo "version=$(grep -m1 '^version:' pubspec.yaml | cut -d' ' -f2 | cut -d'+' -f1)" >> "$GITHUB_OUTPUT"
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: mobile ${{ steps.ver.outputs.version }} (${{ github.ref_name }})
+          body: |
+            AI Goal · Android（mobile app）
+
+            版本：`${{ steps.ver.outputs.version }}`（事实源：apps/mobile/pubspec.yaml）
+
+            - `app-arm64-v8a-release.apk`：现代手机（Android 15+）安装这个
+            - `app-armeabi-v7a-release.apk`：32 位设备
+            - `app-x86_64-release.apk`：模拟器
+          files: |
+            apps/mobile/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+            apps/mobile/build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+            apps/mobile/build/app/outputs/flutter-apk/app-x86_64-release.apk

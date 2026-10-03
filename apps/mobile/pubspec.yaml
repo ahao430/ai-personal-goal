@@ -1,0 +1,61 @@
+name: ai_goal
+description: "AI 驱动的个人目标管理 App（Local-first）。"
+publish_to: 'none'
+
+# 版本策略：常规迭代 +0.0.1；较大的功能改动 +0.1.0；正式发布 1.0.0。
+# 每次改动同步更新根目录 CHANGELOG.md。
+version: 1.0.0+12
+
+environment:
+  sdk: ^3.10.8
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # 本地持久化：SQLite 是 V1 的事实源
+  sqflite: ^2.4.1
+  path_provider: ^2.1.5
+  path: ^1.9.0
+
+  # 实体 ID 统一使用带前缀的 UUID（goal_xxx / task_xxx ...），
+  # 为未来云同步预留跨设备唯一标识
+  uuid: ^4.5.1
+
+  # AI Provider API 调用（获取模型列表等）
+  http: ^1.2.2
+
+  # 公开图标库（Font Awesome 6 Free）
+  font_awesome_flutter: ^10.7.0
+  flutter_riverpod: ^2.6.1
+  flutter_animate: ^4.5.2
+  flutter_local_notifications: ^22.3.1
+  timezone: ^0.11.1
+  flutter_timezone: ^5.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+  # 桌面端/测试环境的 sqflite 实现（in-memory SQLite 跑 Repository 测试）
+  sqflite_common_ffi: ^2.3.4
+
+  # 从生成的 logo 产出 iOS / Android 应用图标
+  flutter_launcher_icons: ^0.13.1
+
+# flutter_launcher_icons 配置：dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/images/logo.png"
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
