@@ -22,6 +22,21 @@
 
 ---
 
+## [mobile 1.0.1] - 2026-10-03
+
+修复真机 release 包无网络的问题。
+
+- **Bug**：release APK 所有网络请求报
+  `SocketException: failed host lookup, errno = -7`（DNS 解析失败）——
+  Flutter 模板只在 debug/profile 清单声明 INTERNET 权限，
+  main（release 合并源）没有。真机上配置 glm / deepseek / 自定义供应商
+  后「获取模型列表」全部失败。已在 main manifest 显式声明
+  `android.permission.INTERNET`。
+  （测试全用 MockClient 且未在 release 真机跑过真实网络，故未拦截）
+- 版本：`apps/mobile/pubspec.yaml` → `1.0.1+13`
+
+---
+
 ## [workspace 0.1.0] - 2026-10-03
 
 monorepo 版本与各 app 解耦 + CI 云端打包接入。

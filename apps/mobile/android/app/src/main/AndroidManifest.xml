@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 网络：AI 供应商 / 模型列表 / 联网搜索 / 天气。
+         Flutter 模板只在 debug/profile 清单放 INTERNET，release 必须显式声明，
+         否则真机所有请求报 failed host lookup（1.0.0 就踩的这个坑）。 -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- P7 本地通知：任务提醒（Android 13+ 运行时再请求 POST_NOTIFICATIONS） -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>

@@ -59,9 +59,15 @@ void main() {
         title: '晚间快走',
         phaseId: phase.id,
       );
+      // 日程锚定在「今天」内（晚间跑测试时 +1h 会跨天，今天列表就空了）
+      final now = DateTime.now();
+      final plus1h = now.add(const Duration(hours: 1));
+      final startAt = plus1h.day == now.day
+          ? plus1h
+          : DateTime(now.year, now.month, now.day, 23, 55);
       await services.planningService.scheduleTask(
         task.id,
-        startAt: DateTime.now().add(const Duration(hours: 1)),
+        startAt: startAt,
         durationMinutes: 40,
       );
     });
