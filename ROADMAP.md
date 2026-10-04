@@ -17,6 +17,9 @@
 - ✅ P9 External Data 框架（DataProvider / Permission / Context Adapter + 天气源）
 - ✅ P10 测试打磨（完整 Goal Loop E2E + AI Evaluation Cases）
 - 🎉 **V1 发布（1.0.0）**：plan §51 完成标准全部达成，全程无需服务器
+- ✅ 发布后迭代：release 统一正式签名（1.0.4）、测试对话（1.0.2）、
+      会话管理 + 检查更新（1.0.3）、**备份与同步：本地导入导出 +
+      WebDAV 云备份（坚果云模板，1.1.0）**
 - 后续：V2 起的长期路线（见下文）
 
 ---

@@ -11,7 +11,7 @@ AI 驱动的个人目标管理 App。核心不是 Todo，而是：
 
 ## 当前状态
 
-**v1.0.0**（2026-10-03）—— **V1 正式发布**：
+**v1.1.0**（2026-10-04）—— **V1 已发布**：
 **规划 → 执行 → 提醒 → 汇报 → 分析 → 调整** 全闭环，
 plan §51 完成标准全部达成，全程无需服务器。
 
@@ -27,11 +27,15 @@ plan §51 完成标准全部达成，全程无需服务器。
   目标级操作走 `propose_action` 是/否确认；`analyze_progress` 提供聚合事实
 - 本地通知：按计划提前 10 分钟提醒、通知直接完成/延后、点击深链目标详情
 - 日历月视图：月历 + 选中日任务列表（首页 / 目标详情双入口）
+- 备份与同步：本地导入/导出 .aigoal 备份包 + WebDAV 云备份
+  （坚果云模板 / 每日自动）—— 无服务器阶段的数据安全网
+- 云端 CI/CD：push 自动测试打包，tag 发 Release，统一正式签名，
+  App 内检查更新
 - 联网搜索：web_search / fetch_web_page 工具，结论附引用来源；
   免 key 默认可用，可选配 Tavily Key
 - External Data 框架：DataProvider / 授权 / Context Adapter；
   天气源已接入（Open-Meteo 免 key，户外目标建议）
-- 测试 152 个用例全通过（含完整 Goal Loop E2E 与 AI Evaluation Cases）
+- 测试 171 个用例全通过（含完整 Goal Loop E2E 与 AI Evaluation Cases）
 
 详细变更见 [CHANGELOG.md](./CHANGELOG.md)；路线图见 [ROADMAP.md](./ROADMAP.md)
 （V1 阶段进度 + V2-V7 长期方向，含服务端 MCP：支持 workuddy 等外部 agent

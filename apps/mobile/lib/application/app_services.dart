@@ -29,6 +29,7 @@ import '../domain/task/task_repository.dart';
 import 'agent_service.dart';
 import 'ai_provider_service.dart';
 import 'analysis_service.dart';
+import 'backup_service.dart';
 import 'context_builder.dart';
 import 'daily_review_service.dart';
 import 'external_data_service.dart';
@@ -138,6 +139,10 @@ class AppServices {
   // ── 检查更新 ─────────────────────────────────────────
   late final UpdateService updateService =
       UpdateService(settings, client: _searchClient);
+
+  // ── 备份与同步（WebDAV / 本地导入导出） ────────────────
+  late final BackupService backupService =
+      BackupService(this, client: _searchClient);
 
   // ── External Data 框架（P9） ──────────────────────────
   late final DataSourcePermissionRepository dataSourcePermissions =

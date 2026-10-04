@@ -4,7 +4,7 @@ publish_to: 'none'
 
 # 版本策略：常规迭代 +0.0.1；较大的功能改动 +0.1.0；正式发布 1.0.0。
 # 每次改动同步更新根目录 CHANGELOG.md。
-version: 1.0.4+16
+version: 1.1.0+17
 
 environment:
   sdk: ^3.10.8
@@ -36,6 +36,9 @@ dependencies:
   flutter_timezone: ^5.1.0
   package_info_plus: ^10.2.2
   url_launcher: ^6.3.2
+  archive: ^4.3.0
+  share_plus: ^13.3.1
+  file_picker: ^13.1.0
 
 dev_dependencies:
   flutter_test:

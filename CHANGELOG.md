@@ -22,6 +22,52 @@
 
 ---
 
+## [mobile 1.1.0] - 2026-10-04
+
+**备份与同步**（较大功能 → 1.1.0）：无服务器阶段的完整备份能力。
+
+### 本地导入 / 导出
+
+- 导出：`VACUUM INTO` 生成 SQLite 一致性快照（不锁库），打包为
+  `.aigoal`（zip = manifest + ai_goal.db），系统分享保存到任意位置
+- 导入：选文件 → 解包校验（manifest / 应用匹配 / 试开 + 自动迁移旧
+  schema）→ 展示备份信息 → 确认覆盖 → 应用重启（RestartWidget 重建
+  AppServices 与全部状态）
+- 校验失败的备份完全不触碰现有数据
+
+### WebDAV 云备份（坚果云模板优先）
+
+- `core/webdav/webdav_client.dart`：PUT / GET / MKCOL（幂等）+ Basic
+  Auth，纯 HTTP 实现无新重依赖
+- 配置模板：**坚果云**（预填 `https://dav.jianguoyun.com/dav/`，
+  提示用户名=账户邮箱、密码=网页端「应用密码」）与自定义
+  （Nextcloud / InfiniCloud 等任意 WebDAV）
+- 备份布局：`latest.aigoal`（固定名覆盖）+ `history/backup-<时间戳>`
+  （追加保留）；「测试连接」写探针文件验证
+- **每日自动备份**：开关开启后每天首次打开 App 自动上传一次
+  （settings 记日期，失败静默次日再试）
+- 「从云端恢复」：下载 latest → 走导入校验流程 → 覆盖重启
+
+### 基础设施
+
+- RestartWidget：应用级重启容器（导入/恢复后重建 AppServices +
+  ProviderScope + 重跑通知引导与自动备份）
+- manifest 放开 usesCleartextTraffic（自定义 WebDAV 常见局域网 http）
+- 新依赖：archive、share_plus、file_picker
+- 「我的 → 设置 → 备份与同步」入口
+
+### 测试
+
+- 新增 9 个用例（累计 171 全绿）：WebDAV 协议 4（Basic Auth 头 / PUT /
+  MKCOL 幂等 / 404 提示 / 连通测试）、备份 5（导出导入往返 /
+  三类非法包拦截 / 配置往返 / latest+history 布局 / 每日一次节流）
+
+### 版本
+
+- `apps/mobile/pubspec.yaml` → `1.1.0+17`
+
+---
+
 ## [mobile 1.0.4] - 2026-10-04
 
 **release 包改用统一正式签名**——修复每次更新都提示签名不兼容的问题。

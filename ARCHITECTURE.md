@@ -184,6 +184,11 @@ ProgressEvent：一切重要变化的不可变事实（AI 分析的依据）
   （Context Adapter：已授权源片段 → ContextBuilder `external` 键，
   单源失败静默跳过）；天气源首个真实现（Open-Meteo 免 key + 城市配置），
   health/location/calendar 占位待版本开放
+- **备份与同步（1.1.0，无服务器阶段）**：`BackupService` ——
+  `VACUUM INTO` 一致性快照打包 `.aigoal`（manifest + SQLite）；
+  导入先试开迁移校验再替换 + RestartWidget 应用级重启；
+  WebDAV（`core/webdav/`，坚果云模板）latest + history 双份上传、
+  每日自动备份、云端恢复；所有数据只在本机与用户自己的网盘
 - API Key V1 明文存本机 SQLite（无后端不上传），UI 脱敏展示
 
 ## AI 接入（P3+ 预告，尚未实现）

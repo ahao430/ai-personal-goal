@@ -8,6 +8,7 @@ import '../../core/config/app_palette.dart';
 import '../../core/motion/motion.dart';
 import '../../domain/external/data_source.dart';
 import '../providers.dart';
+import '../backup/backup_page.dart';
 import '../settings/settings_page.dart';
 
 /// 我的：设置入口、应用信息。数据源权限（P9）预留展示。
@@ -71,6 +72,14 @@ class ProfilePage extends ConsumerWidget {
                 context,
                 SettingsPage(services: ref.read(servicesProvider)),
               ),
+            ),
+            ListTile(
+              leading: const FaIcon(FontAwesomeIcons.database,
+                  size: 18, color: AppPalette.coral),
+              title: const Text('备份与同步'),
+              subtitle: const Text('导出/导入数据文件 · WebDAV 云备份'),
+              trailing: const FaIcon(FontAwesomeIcons.chevronRight, size: 14),
+              onTap: () => pushMotion(context, const BackupPage()),
             ),
           ]),
           const SizedBox(height: 8),
