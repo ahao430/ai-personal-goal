@@ -21,6 +21,7 @@ class _GoalEditPageState extends ConsumerState<GoalEditPage> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _title;
   late final TextEditingController _description;
+  late final TextEditingController _reward;
   DateTime? _targetDate;
 
   // 可选 Metric
@@ -39,6 +40,7 @@ class _GoalEditPageState extends ConsumerState<GoalEditPage> {
     final e = widget.existing;
     _title = TextEditingController(text: e?.title ?? '');
     _description = TextEditingController(text: e?.description ?? '');
+    _reward = TextEditingController(text: e?.reward ?? '');
     _targetDate = e?.targetDate;
   }
 
@@ -46,6 +48,7 @@ class _GoalEditPageState extends ConsumerState<GoalEditPage> {
   void dispose() {
     _title.dispose();
     _description.dispose();
+    _reward.dispose();
     _metricName.dispose();
     _metricCurrent.dispose();
     _metricTarget.dispose();
@@ -68,11 +71,13 @@ class _GoalEditPageState extends ConsumerState<GoalEditPage> {
     final services = ref.read(servicesProvider);
     try {
       final existing = widget.existing;
+      final rewardText = _reward.text.trim();
       if (existing == null) {
         final goal = await services.goalService.createGoal(
           title: _title.text.trim(),
           description: _description.text.trim().isEmpty ? null : _description.text.trim(),
           targetDate: _targetDate,
+          reward: rewardText.isEmpty ? null : rewardText,
         );
         if (_showMetric && _metricName.text.trim().isNotEmpty) {
           await services.goalService.addMetric(
@@ -92,6 +97,7 @@ class _GoalEditPageState extends ConsumerState<GoalEditPage> {
             description:
                 _description.text.trim().isEmpty ? null : _description.text.trim(),
             targetDate: _targetDate,
+            reward: rewardText.isEmpty ? null : rewardText,
           ),
         );
       }
@@ -141,6 +147,15 @@ class _GoalEditPageState extends ConsumerState<GoalEditPage> {
               decoration: const InputDecoration(
                 labelText: '补充描述（可选）',
                 hintText: '背景、动机、约束…',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _reward,
+              decoration: const InputDecoration(
+                labelText: '达成奖励（可选）',
+                hintText: '达成后送自己什么？如：一双跑鞋',
+                prefixIcon: FaIcon(FontAwesomeIcons.gift, size: 16),
               ),
             ),
             const SizedBox(height: 12),

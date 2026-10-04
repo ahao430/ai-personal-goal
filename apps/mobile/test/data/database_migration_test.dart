@@ -106,8 +106,68 @@ void main() {
   });
 
   test('schema 版本常量与迁移列表一致', () {
-    expect(AppDatabase.schemaVersion, 5);
+    expect(AppDatabase.schemaVersion, 6);
     expect(schemaMigrations.last.version, AppDatabase.schemaVersion);
+  });
+
+  test('v6：goals 的 reward / completed_at 列存在', () async {
+    final columns = await db.database.rawQuery('PRAGMA table_info(goals)');
+    expect(
+      columns.map((c) => c['name']),
+      containsAll(['reward', 'completed_at']),
+    );
+  });
+
+  test('v6 升级回填：旧库已完成目标用 updated_at 填 completed_at', () async {
+    sqfliteFfiInit();
+    final dir = await Directory.systemTemp.createTemp('ai_goal_v6');
+    final path = '${dir.path}/v6.db';
+
+    // 以 v5 建库，写入一条已完成目标（v5 没有 completed_at 列）。
+    final v5 = await databaseFactoryFfi.openDatabase(
+      path,
+      options: OpenDatabaseOptions(
+        version: 5,
+        onCreate: (db, version) =>
+            runSchemaMigrations(db.execute, from: 0, to: 5),
+      ),
+    );
+    await v5.insert('goals', {
+      'id': 'goal_done',
+      'title': '旧版本完成的目标',
+      'status': 'completed',
+      'overall_progress': 100.0,
+      'created_at': '2026-08-01T00:00:00.000Z',
+      'updated_at': '2026-09-15T00:00:00.000Z',
+    });
+    await v5.insert('goals', {
+      'id': 'goal_alive',
+      'title': '进行中的目标',
+      'status': 'active',
+      'overall_progress': 30.0,
+      'created_at': '2026-08-01T00:00:00.000Z',
+      'updated_at': '2026-09-15T00:00:00.000Z',
+    });
+    await v5.close();
+
+    final upgraded = await AppDatabase.open(
+      path: path,
+      factory: databaseFactoryFfi,
+    );
+    try {
+      final rows = await upgraded.database.query('goals');
+      final byId = {for (final r in rows) r['id']! as String: r};
+      // 已完成 → completed_at 回填为 updated_at；进行中 → 保持 NULL。
+      expect(byId['goal_done']!['completed_at'], '2026-09-15T00:00:00.000Z');
+      expect(byId['goal_alive']!['completed_at'], isNull);
+
+      final goal = Goal.fromMap(byId['goal_done']!);
+      expect(goal.completedAt, isNotNull);
+      expect(goal.reward, isNull);
+    } finally {
+      await upgraded.close();
+      await dir.delete(recursive: true);
+    }
   });
 
   test('v5：data_source_permissions 表存在', () async {

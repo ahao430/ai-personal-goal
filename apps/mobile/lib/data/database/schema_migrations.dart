@@ -238,6 +238,21 @@ const List<SchemaMigration> schemaMigrations = [
     )
     ''',
   ]),
+
+  /// Schema v6：目标激励与完成统计（用户需求：目标奖励 + 首页完成数）。
+  ///
+  /// - goals.reward：达成目标后给自己的奖励（展示用文本）。
+  /// - goals.completed_at：完成时间，首页「本月/今年完成」统计的依据。
+  ///   旧库里已 completed 的目标用 updated_at 回填一个近似值。
+  SchemaMigration(version: 6, statements: [
+    'ALTER TABLE goals ADD COLUMN reward TEXT',
+    'ALTER TABLE goals ADD COLUMN completed_at TEXT',
+    '''
+    UPDATE goals
+    SET completed_at = updated_at
+    WHERE status = 'completed' AND completed_at IS NULL
+    ''',
+  ]),
 ];
 
 /// 执行 (from, to] 范围内的迁移。from == 0 表示全新建库。

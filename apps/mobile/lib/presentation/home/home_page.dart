@@ -53,6 +53,8 @@ class HomePage extends ConsumerWidget {
                     _heroCard(context, theme),
                     _reviewCard(context, ref, theme),
                     const SizedBox(height: 16),
+                    _statsCard(context, theme, view),
+                    const SizedBox(height: 16),
                     _todaySection(context, ref, theme, view.today),
                     const SizedBox(height: 14),
                     _currentGoalSection(context, theme, view),
@@ -260,6 +262,75 @@ class HomePage extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// 完成统计卡：本月 / 今年达成的目标数（激励向，0 也展示）。
+  Widget _statsCard(BuildContext context, ThemeData theme, HomeView view) {
+    final now = DateTime.now();
+    Widget count(String label, int value) => Expanded(
+          child: Column(
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  AnimatedSwitcher(
+                    duration: AppMotion.normal,
+                    switchInCurve: AppCurves.emphasized,
+                    child: Text(
+                      '$value',
+                      key: ValueKey(value),
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: AppPalette.sunsetOrange,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  Text('个', style: theme.textTheme.labelSmall?.copyWith(
+                    color: AppPalette.warmBrown.withValues(alpha: 0.5),
+                  )),
+                ],
+              ),
+              Text(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppPalette.warmBrown.withValues(alpha: 0.65),
+                ),
+              ),
+            ],
+          ),
+        );
+
+    return WarmCard(
+      background: AppPalette.cardBgAmber,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          const FaIcon(FontAwesomeIcons.trophy,
+              size: 18, color: AppPalette.amber),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              '已完成的目标',
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: AppPalette.warmBrown,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          count('${now.month} 月', view.completedThisMonth),
+          Container(
+            width: 1,
+            height: 26,
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            color: AppPalette.warmBrown.withValues(alpha: 0.12),
+          ),
+          count('${now.year} 年', view.completedThisYear),
+        ],
       ),
     );
   }

@@ -81,6 +81,8 @@ Map<String, Object?> _goalJson(Goal g) => {
       'progress': g.overallProgress.round(),
       'description': ?g.description,
       'targetDate': ?g.targetDate?.toIso8601String(),
+      'reward': ?g.reward,
+      'completedAt': ?g.completedAt?.toIso8601String(),
     };
 
 Map<String, Object?> _phaseJson(Phase p) => {
@@ -138,17 +140,19 @@ ToolRegistry buildGoalTools(AppServices s) => ToolRegistry([
       ),
       AgentTool(
         name: 'create_goal',
-        description: '创建目标。title 必填；targetDate 用 ISO 8601',
+        description: '创建目标。title 必填；targetDate 用 ISO 8601；reward 是达成后给自己的奖励',
         parametersSchema: _obj({
           'title': _s('目标标题'),
           'description': _s('补充描述'),
           'targetDate': _s('目标日期，如 2026-12-31'),
+          'reward': _s('达成后给自己的奖励，如 买一双跑鞋'),
         }, ['title']),
         handler: (args, ctx) async {
           final goal = await s.goalService.createGoal(
             title: _req(args, 'title'),
             description: _str(args, 'description'),
             targetDate: _dateV(args, 'targetDate'),
+            reward: _str(args, 'reward'),
           );
           return {'goal': _goalJson(goal)};
         },
@@ -161,6 +165,7 @@ ToolRegistry buildGoalTools(AppServices s) => ToolRegistry([
           'title': _s('新标题'),
           'description': _s('新描述，传空字符串可清除'),
           'targetDate': _s('新目标日期'),
+          'reward': _s('新奖励，传空字符串可清除'),
         }, ['goalId']),
         handler: (args, ctx) async {
           final goal = await s.goalService.updateGoal(
@@ -172,6 +177,10 @@ ToolRegistry buildGoalTools(AppServices s) => ToolRegistry([
                   ? null
                   : (_str(args, 'description') ?? g.description),
               targetDate: _dateV(args, 'targetDate') ?? g.targetDate,
+              reward: args['reward'] is String &&
+                      (args['reward'] as String).isEmpty
+                  ? null
+                  : (_str(args, 'reward') ?? g.reward),
             ),
           );
           return {'goal': _goalJson(goal)};

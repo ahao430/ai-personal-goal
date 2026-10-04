@@ -15,6 +15,9 @@ abstract interface class GoalRepository {
 
   /// 活跃目标的轻量计数（首页展示用）。
   Future<int> countByStatus(GoalStatus status);
+
+  /// [from] 之后（含）完成的目标数（首页本月/今年统计用）。
+  Future<int> countCompletedSince(DateTime from);
 }
 
 /// GoalMetric 与其历史值（MetricValue）的仓储接口。

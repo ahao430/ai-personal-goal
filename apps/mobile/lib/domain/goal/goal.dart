@@ -25,9 +25,11 @@ class Goal {
     this.status = GoalStatus.active,
     this.startDate,
     this.targetDate,
+    this.reward,
     this.overallProgress = 0,
     required this.createdAt,
     required this.updatedAt,
+    this.completedAt,
   }) : assert(overallProgress >= 0 && overallProgress <= 100);
 
   final String id;
@@ -40,11 +42,17 @@ class Goal {
   final DateTime? startDate;
   final DateTime? targetDate;
 
+  /// 达成目标后给自己的奖励（如「买一双跑鞋」），完成时展示提醒。
+  final String? reward;
+
   /// 0 ~ 100，仅用于统一展示；真实进展看 Metric 与 ProgressEvent。
   final double overallProgress;
 
   final DateTime createdAt;
   final DateTime updatedAt;
+
+  /// 完成时间（首页按月/年统计完成目标数的依据）；重开目标时清空。
+  final DateTime? completedAt;
 
   static const _keep = Object();
 
@@ -54,8 +62,10 @@ class Goal {
     GoalStatus? status,
     Object? startDate = _keep,
     Object? targetDate = _keep,
+    Object? reward = _keep,
     double? overallProgress,
     DateTime? updatedAt,
+    Object? completedAt = _keep,
   }) {
     return Goal(
       id: id,
@@ -65,9 +75,12 @@ class Goal {
       status: status ?? this.status,
       startDate: startDate == _keep ? this.startDate : startDate as DateTime?,
       targetDate: targetDate == _keep ? this.targetDate : targetDate as DateTime?,
+      reward: reward == _keep ? this.reward : reward as String?,
       overallProgress: overallProgress ?? this.overallProgress,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      completedAt:
+          completedAt == _keep ? this.completedAt : completedAt as DateTime?,
     );
   }
 
@@ -79,9 +92,11 @@ class Goal {
         'status': status.name,
         'start_date': encodeTimeOrNull(startDate),
         'target_date': encodeTimeOrNull(targetDate),
+        'reward': reward,
         'overall_progress': overallProgress,
         'created_at': encodeTime(createdAt),
         'updated_at': encodeTime(updatedAt),
+        'completed_at': encodeTimeOrNull(completedAt),
       };
 
   factory Goal.fromMap(Map<String, Object?> map) => Goal(
@@ -91,9 +106,11 @@ class Goal {
         status: GoalStatus.parse(map['status']! as String),
         startDate: decodeTimeOrNull(map['start_date'] as String?),
         targetDate: decodeTimeOrNull(map['target_date'] as String?),
+        reward: map['reward'] as String?,
         overallProgress: (map['overall_progress']! as num).toDouble(),
         createdAt: decodeTime(map['created_at']! as String),
         updatedAt: decodeTime(map['updated_at']! as String),
+        completedAt: decodeTimeOrNull(map['completed_at'] as String?),
       );
 
   @override

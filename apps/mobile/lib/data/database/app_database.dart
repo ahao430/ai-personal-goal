@@ -12,7 +12,7 @@ class AppDatabase {
   AppDatabase._(this.database);
 
   /// 当前 schema 版本，与 [schemaMigrations] 的最大版本保持一致。
-  static const int schemaVersion = 5;
+  static const int schemaVersion = 6;
 
   static const String databaseFileName = 'ai_goal.db';
 

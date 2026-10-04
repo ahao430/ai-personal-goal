@@ -19,6 +19,7 @@ class GoalService {
     String? description,
     DateTime? startDate,
     DateTime? targetDate,
+    String? reward,
   }) {
     final now = DateTime.now();
     return _goals.insert(
@@ -28,6 +29,7 @@ class GoalService {
         description: description,
         startDate: startDate,
         targetDate: targetDate,
+        reward: reward,
         createdAt: now,
         updatedAt: now,
       ),
@@ -80,7 +82,9 @@ class GoalService {
     await _progress.emit(
       ProgressEventType.goalUpdated,
       goalId: id,
-      message: '目标「${goal.title}」完成 🎉',
+      message: goal.reward == null
+          ? '目标「${goal.title}」完成 🎉'
+          : '目标「${goal.title}」完成 🎉 记得奖励自己：${goal.reward}',
     );
     return goal;
   }
@@ -102,13 +106,21 @@ class GoalService {
   }
 
   /// 状态迁移；已是目标状态时返回 null（不写库、不发事件）。
+  ///
+  /// 进入 completed 时记录 completedAt（首页统计依据）；
+  /// 离开 completed（重开/取消/归档）时清空，避免统计被污染。
   Future<Goal?> _transition(String id, GoalStatus status) async {
     final current = await _goals.findById(id);
     if (current == null) {
       throw StateError('Goal 不存在: $id');
     }
     if (current.status == status) return null;
-    return _goals.update(current.copyWith(status: status));
+    return _goals.update(
+      current.copyWith(
+        status: status,
+        completedAt: status == GoalStatus.completed ? DateTime.now() : null,
+      ),
+    );
   }
 
   // ── Metrics ────────────────────────────────────────────

@@ -43,6 +43,8 @@ class HomeView {
     this.currentPhase,
     this.nextTask,
     this.primaryMetrics = const [],
+    this.completedThisMonth = 0,
+    this.completedThisYear = 0,
   });
 
   final TodayView today;
@@ -55,6 +57,10 @@ class HomeView {
   /// 下一步：当前目标最早到期的未完成任务。
   final Task? nextTask;
   final List<GoalMetric> primaryMetrics;
+
+  /// 本月 / 今年完成的目标数（completedAt 统计）。
+  final int completedThisMonth;
+  final int completedThisYear;
 }
 
 /// 目标详情聚合视图。
@@ -138,6 +144,11 @@ class OverviewService {
       primaryMetrics = await _metrics.findByGoal(primary.id);
     }
 
+    final completedThisYear =
+        await _goals.countCompletedSince(DateTime(at.year, 1, 1));
+    final completedThisMonth =
+        await _goals.countCompletedSince(DateTime(at.year, at.month, 1));
+
     return HomeView(
       today: today,
       activeGoals: active,
@@ -145,6 +156,8 @@ class OverviewService {
       currentPhase: currentPhase,
       nextTask: nextTask,
       primaryMetrics: primaryMetrics,
+      completedThisMonth: completedThisMonth,
+      completedThisYear: completedThisYear,
     );
   }
 

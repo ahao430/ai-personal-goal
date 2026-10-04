@@ -66,6 +66,16 @@ class SqliteGoalRepository implements GoalRepository {
     );
     return Sqflite.firstIntValue(rows) ?? 0;
   }
+
+  @override
+  Future<int> countCompletedSince(DateTime from) async {
+    final rows = await _db.rawQuery(
+      'SELECT COUNT(*) AS n FROM goals '
+      'WHERE status = ? AND completed_at IS NOT NULL AND completed_at >= ?',
+      [GoalStatus.completed.name, encodeTime(from)],
+    );
+    return Sqflite.firstIntValue(rows) ?? 0;
+  }
 }
 
 class SqliteGoalMetricRepository implements GoalMetricRepository {

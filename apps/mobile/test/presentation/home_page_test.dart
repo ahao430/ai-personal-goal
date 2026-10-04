@@ -87,4 +87,28 @@ void main() {
     expect(find.text('晚间快走'), findsOneWidget);
     expect(find.textContaining('下一步：晚间快走'), findsOneWidget);
   });
+
+  testWidgets('首页完成统计卡展示本月/今年完成数', (tester) async {
+    await tester.runAsync(() async {
+      final a = await services.goalService.createGoal(title: '读一本书');
+      final b = await services.goalService.createGoal(title: '跑半马');
+      await services.goalService.completeGoal(a.id);
+      await services.goalService.completeGoal(b.id);
+    });
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [servicesProvider.overrideWithValue(services)],
+        child: const MaterialApp(home: AppShell()),
+      ),
+    );
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pumpAndSettle();
+
+    expect(find.text('已完成的目标'), findsOneWidget);
+    // 本月与今年计数都是 2。
+    expect(find.text('2'), findsNWidgets(2));
+  });
 }

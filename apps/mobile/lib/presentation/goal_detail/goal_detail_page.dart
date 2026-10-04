@@ -356,6 +356,44 @@ class _RoadmapTab extends ConsumerWidget {
                       ),
                     ),
                   ],
+                  if (goal.reward != null && goal.reward!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: (goal.status == GoalStatus.completed
+                                ? AppPalette.amber
+                                : AppPalette.peach)
+                            .withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: [
+                          FaIcon(
+                            FontAwesomeIcons.gift,
+                            size: 14,
+                            color: goal.status == GoalStatus.completed
+                                ? AppPalette.amber
+                                : AppPalette.sunsetOrange,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              goal.status == GoalStatus.completed
+                                  ? '目标达成，去兑现奖励：${goal.reward} 🎉'
+                                  : '达成奖励：${goal.reward}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppPalette.warmBrown.withValues(alpha: 0.85),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
