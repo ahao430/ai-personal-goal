@@ -39,6 +39,7 @@ import 'planning_service.dart';
 import 'progress_service.dart';
 import 'proposal_service.dart';
 import 'search_service.dart';
+import 'update_service.dart';
 
 /// 组合根：打开数据库并装配全部 Repository。
 ///
@@ -133,6 +134,10 @@ class AppServices {
   // ── Web Search（P8） ──────────────────────────────────
   late final SearchService searchService =
       SearchService(settings, client: _searchClient);
+
+  // ── 检查更新 ─────────────────────────────────────────
+  late final UpdateService updateService =
+      UpdateService(settings, client: _searchClient);
 
   // ── External Data 框架（P9） ──────────────────────────
   late final DataSourcePermissionRepository dataSourcePermissions =

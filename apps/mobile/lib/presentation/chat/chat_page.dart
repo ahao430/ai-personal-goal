@@ -50,6 +50,57 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         recent.where((c) => c.goalId == widget.goalId).firstOrNull;
     if (conv == null || !mounted) return;
     await _reloadMessages(conv.id);
+    _jumpToBottom();
+  }
+
+  /// 立即定位到底部（进入页面恢复历史时用，不做滚动动画）。
+  void _jumpToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
+  }
+
+  /// 新建会话：清空当前视图，下一条消息自动开新会话。
+  void _newConversation() {
+    setState(() {
+      _conversationId = null;
+      _messages = [];
+      _proposals = {};
+    });
+  }
+
+  /// 清空当前会话（确认后删除会话与全部消息，级联）。
+  Future<void> _clearConversation() async {
+    final convId = _conversationId;
+    if (convId == null) {
+      _newConversation();
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('清空当前会话'),
+        content: const Text('将删除这次会话的全部消息与计划提案记录，'
+            '目标数据不受影响。此操作不可撤销。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppPalette.coral,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('清空'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await ref.read(servicesProvider).conversations.delete(convId);
+    _newConversation();
   }
 
   /// 从库里重读当前会话的消息与提案（发送完成 / 应用提案后调用）。
@@ -201,6 +252,18 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.goalId == null ? '和 AI 聊聊' : '讨论这个目标'),
+        actions: [
+          IconButton(
+            tooltip: '新建会话（清空屏幕，开启新对话）',
+            icon: const FaIcon(FontAwesomeIcons.plus, size: 17),
+            onPressed: _running ? null : _newConversation,
+          ),
+          IconButton(
+            tooltip: '清空当前会话',
+            icon: const FaIcon(FontAwesomeIcons.trashCan, size: 16),
+            onPressed: _running ? null : _clearConversation,
+          ),
+        ],
       ),
       body: Column(
         children: [

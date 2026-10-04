@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/config/app_palette.dart';
 import '../../core/motion/motion.dart';
@@ -81,10 +83,13 @@ class ProfilePage extends ConsumerWidget {
           _DataSourceGroup(),
           const SizedBox(height: 8),
           _group(theme, '关于', [
-            const ListTile(
-              leading: FaIcon(FontAwesomeIcons.circleInfo, size: 18),
-              title: Text('版本'),
-              trailing: Text('0.7.0'),
+            const _VersionTile(),
+            ListTile(
+              leading: const FaIcon(FontAwesomeIcons.rotate, size: 18),
+              title: const Text('检查更新'),
+              subtitle: const Text('从 GitHub Release 检测新版本'),
+              trailing: const FaIcon(FontAwesomeIcons.chevronRight, size: 14),
+              onTap: () => _checkUpdate(context, ref),
             ),
             const ListTile(
               leading: FaIcon(FontAwesomeIcons.shieldHalved, size: 18),
@@ -517,6 +522,169 @@ class _DailyReviewTileState extends ConsumerState<_DailyReviewTile> {
       subtitle: const Text('打开 App 时给一句今日行动指引'),
       value: enabled,
       onChanged: _enabled == null ? null : _toggle,
+    );
+  }
+}
+
+
+/// 版本行：从 package_info 读取真实版本（不再手写）。
+class _VersionTile extends StatefulWidget {
+  const _VersionTile();
+
+  @override
+  State<_VersionTile> createState() => _VersionTileState();
+}
+
+class _VersionTileState extends State<_VersionTile> {
+  String _version = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final info = await PackageInfo.fromPlatform();
+    if (!mounted) return;
+    setState(() => _version = info.version);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: const FaIcon(FontAwesomeIcons.circleInfo, size: 18),
+      title: const Text('版本'),
+      trailing: Text(_version.isEmpty ? '…' : _version),
+    );
+  }
+}
+
+/// 检查更新：查询 GitHub latest Release，比较版本后弹结果。
+Future<void> _checkUpdate(BuildContext context, WidgetRef ref) async {
+  final update = ref.read(servicesProvider).updateService;
+
+  final result = await update.checkForUpdate();
+  if (!context.mounted) return;
+  final messenger = ScaffoldMessenger.of(context);
+
+  if (result.error != null) {
+    // 引导配置 Token（私有仓库必需）
+    final configure = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('检查更新失败'),
+        content: Text('${result.error}\n\n私有仓库需要在 GitHub 创建'
+            '只读 Token（Settings → Developer settings → Personal access tokens）'
+            '后填入。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('知道了'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('配置 Token'),
+          ),
+        ],
+      ),
+    );
+    if (configure == true && context.mounted) {
+      await _editGithubToken(context, ref);
+    }
+    return;
+  }
+
+  if (!result.hasUpdate) {
+    messenger.showSnackBar(
+      SnackBar(content: Text('已是最新版本（${result.currentVersion}）')),
+    );
+    return;
+  }
+
+  // 有更新：展示版本与说明，跳浏览器下载
+  final openUrl = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text('发现新版本 ${result.latestVersion}'),
+      content: SingleChildScrollView(
+        child: Text(
+          (result.notes ?? '').trim().isEmpty
+              ? '当前 ${result.currentVersion} → ${result.latestVersion}'
+              : '当前 ${result.currentVersion} → ${result.latestVersion}\n\n'
+                  '${result.notes}',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                height: 1.6,
+              ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('稍后'),
+        ),
+        FilledButton.icon(
+          icon: const FaIcon(FontAwesomeIcons.download, size: 14),
+          onPressed: () => Navigator.pop(dialogContext, true),
+          label: const Text('去下载'),
+        ),
+      ],
+    ),
+  );
+  if (openUrl == true && result.releaseUrl != null) {
+    final uri = Uri.tryParse(result.releaseUrl!);
+    if (uri != null) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+}
+
+Future<void> _editGithubToken(BuildContext context, WidgetRef ref) async {
+  final update = ref.read(servicesProvider).updateService;
+  final current = await update.githubToken();
+  if (!context.mounted) return;
+  final controller = TextEditingController(text: current ?? '');
+  final saved = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('GitHub Token'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '只读 Token 即可（Fine-grained：本仓库 Contents 只读；'
+            '或 Classic：repo 只读）。仅存本机，用于查询 Release。',
+            style: Theme.of(dialogContext).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: controller,
+            obscureText: true,
+            decoration: const InputDecoration(
+              labelText: 'Token（留空则清除）',
+              hintText: 'github_pat_… / ghp_…',
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: const Text('保存'),
+        ),
+      ],
+    ),
+  );
+  if (saved != true) return;
+  await update.setGithubToken(controller.text);
+  if (context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Token 已保存，可再点「检查更新」')),
     );
   }
 }
