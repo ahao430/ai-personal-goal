@@ -5,10 +5,25 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// 正式签名从环境变量注入（CI 由 Secrets 提供；本地 export 后同样生效）。
+// 缺省回退 debug 签名 —— 本地开发构建不受影响。
+val releaseKeystorePath: String? = System.getenv("AI_GOAL_KEYSTORE_PATH")
+
 android {
     namespace = "dev.aigoal.ai_goal"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+
+    signingConfigs {
+        if (releaseKeystorePath != null) {
+            create("release") {
+                storeFile = file(releaseKeystorePath)
+                storePassword = System.getenv("AI_GOAL_STORE_PASSWORD")
+                keyAlias = System.getenv("AI_GOAL_KEY_ALIAS")
+                keyPassword = System.getenv("AI_GOAL_KEY_PASSWORD")
+            }
+        }
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -34,8 +49,12 @@ android {
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // 正式签名可用时用之（升级安装签名一致），否则回退 debug。
+            signingConfig = if (releaseKeystorePath != null) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
             // R8 代码收缩 + 资源收缩，控制包体积。
             isMinifyEnabled = true
             isShrinkResources = true

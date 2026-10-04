@@ -7,8 +7,8 @@
 #   git tag mobile-v<版本> && git push origin mobile-v<版本>
 # APK 出现在 GitHub Release 页面，不进 git 仓库。
 #
-# 当前使用 debug 签名（build.gradle 配置），仅限侧载安装；
-# 要正式签名分发时：keystore 进 Secrets，在此补 signingConfig 注入步骤。
+# 正式签名：keystore/密码来自 GitHub Secrets（AI_GOAL_*），
+# 所有 release 包签名一致，可直接覆盖安装升级。
 
 name: mobile-release
 
@@ -47,7 +47,17 @@ jobs:
       - name: Pub get
         run: flutter pub get
 
+      - name: Decode release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.AI_GOAL_KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/ai-goal-release.jks"
+
       - name: Build release APKs
+        env:
+          AI_GOAL_KEYSTORE_PATH: ${{ runner.temp }}/ai-goal-release.jks
+          AI_GOAL_STORE_PASSWORD: ${{ secrets.AI_GOAL_STORE_PASSWORD }}
+          AI_GOAL_KEY_ALIAS: ${{ secrets.AI_GOAL_KEY_ALIAS }}
+          AI_GOAL_KEY_PASSWORD: ${{ secrets.AI_GOAL_KEY_PASSWORD }}
         run: flutter build apk --release --split-per-abi
 
       - name: Resolve version

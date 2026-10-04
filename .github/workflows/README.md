@@ -53,8 +53,21 @@ git push origin main mobile-v1.0.1
 ## 注意事项
 
 - **产物不进 git**：APK 只存在于 Artifacts / GitHub Release，仓库保持轻量
-- **当前为 debug 签名**：仅侧载安装。要正式分发时，keystore 与密码进
-  GitHub Secrets，在 release workflow 注入 signingConfig
+- **正式签名（已接入）**：keystore 与密码存 GitHub Secrets
+  （`AI_GOAL_KEYSTORE_BASE64` / `AI_GOAL_STORE_PASSWORD` /
+  `AI_GOAL_KEY_ALIAS` / `AI_GOAL_KEY_PASSWORD`），release workflow 注入，
+  所有云端 release 包签名一致，可直接覆盖安装升级。
+  本地构建同签名包：
+  ```bash
+  cd apps/mobile
+  export AI_GOAL_KEYSTORE_PATH=~/.keystores/ai-goal-release.jks
+  export AI_GOAL_STORE_PASSWORD=$(cat ~/.keystores/ai-goal-password.txt)
+  export AI_GOAL_KEY_ALIAS=ai-goal
+  export AI_GOAL_KEY_PASSWORD=$AI_GOAL_STORE_PASSWORD
+  flutter build apk --release --split-per-abi
+  ```
+- **keystore 保管**：`~/.keystores/ai-goal-release.jks`（不进仓库）。
+  丢失 = 无法再出同签名包，用户只能卸载重装；建议离线备份一份
 - Flutter 版本 pin 在 `3.38.9`（与开发机一致），升级时改两个文件的
   `FLUTTER_VERSION`
 - 免费额度：public 仓库无限；private 2000 分钟/月
