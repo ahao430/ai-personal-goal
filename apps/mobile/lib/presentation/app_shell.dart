@@ -53,7 +53,7 @@ class _AppShellState extends ConsumerState<AppShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
+      body: MotionTabView(
         index: _index,
         children: const [HomePage(), GoalsPage(), ProfilePage()],
       ),

@@ -77,14 +77,16 @@ dart run flutter_launcher_icons
 > 不允许各页面自行定义 duration / curve。**
 
 - 时长只用 `AppMotion`（instant/fast/normal/slow/page），曲线只用
-  `AppCurves`（standard/emphasized/exit/count）——禁止页面里出现裸
-  `Duration(milliseconds: ...)` 与任意 `Curves.xxx`。
+  `AppCurves`（standard/emphasized/exit/count/switchIn/switchOut）——禁止
+  页面里出现裸 `Duration(milliseconds: ...)` 与任意 `Curves.xxx`。
 - 入场/错位/弹出统一用 `MotionEffects`（entrance / staggerIn / popIn），
   基于 flutter_animate。
-- 页面跳转统一 `pushMotion(context, page)`（MotionPageRoute：淡入 + 轻微上滑），
-  不再直接使用 MaterialPageRoute。
+- 页面跳转统一 `pushMotion(context, page)`（MotionPageRoute：分段淡入 +
+  上滑 + 缩放组合过渡），不再直接使用 MaterialPageRoute。
+- Tab 级切换用 `MotionTabView`（新页浮起入场，IndexedStack 外层 transform，
+  保留各页状态）；卡片类按压反馈用 `MotionPressable`（按压缩放，代替水波纹）。
 - 进度条与百分比用 `AnimatedProgressBar` / `AnimatedPercent`（值变化平滑联动）。
-- 结构性动画（Hero 共享过渡、Tab 切换）优先 Flutter 原生；
+- 结构性动画（Hero 共享过渡）优先 Flutter 原生；
   Rive / Lottie 仅用于未来设计师资产（庆祝动画等），不引入「全家桶」。
 
 ## 版本与发布流程（monorepo 各 app 版本独立）

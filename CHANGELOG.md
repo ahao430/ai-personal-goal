@@ -22,6 +22,34 @@
 
 ---
 
+## [mobile 1.1.2] - 2026-10-05
+
+**切换动效升级**（常规迭代）：动效语言仍统一收口在 `core/motion/`
+（时长 / 曲线只有 AppMotion / AppCurves），观感全面提质。
+
+### Tab 切换
+
+- 新增 `MotionTabView`：底部导航切换时新页「从下方浮起」
+  （分段淡入 + 上浮 + 底部对齐缩放，Material emphasized 曲线）；
+  动画作用在 IndexedStack 外层 transform 上，各 Tab 滚动位置与
+  页面状态完整保留（此前为硬切，无任何过渡）。
+
+### 页面切换
+
+- `MotionPageRoute` 升级为组合过渡：淡入在前 70% 时间轴先行完成 +
+  轻微上滑 + 0.96 → 1 缩放，进入用 switchIn 强调曲线、退出反向快出；
+  全 App 所有 `pushMotion` 页面自动受益。
+
+### 交互反馈
+
+- 新增 `MotionPressable`：按下轻微缩小、松手回弹（比水波纹更贴合
+  暖色插画风），目标列表卡片接入；
+- `entrance` / `staggerIn` 入场增加底部对齐的轻微放大，浮起感更强；
+- `AppCurves` 新增 `switchIn` / `switchOut`（Material emphasized
+  decelerate / accelerate 标准值）。
+
+---
+
 ## [mobile 1.1.1] - 2026-10-04
 
 **目标激励与完成统计**（常规迭代）。

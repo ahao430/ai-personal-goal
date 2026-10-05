@@ -160,8 +160,7 @@ class _GoalsPageState extends ConsumerState<GoalsPage> {
         tag: 'goal-card-${goal.id}',
         child: WarmCard(
           background: _cardBgs[index % _cardBgs.length],
-          child: InkWell(
-            borderRadius: BorderRadius.circular(14),
+          child: MotionPressable(
             onTap: () => pushMotion(context, GoalDetailPage(goalId: goal.id)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

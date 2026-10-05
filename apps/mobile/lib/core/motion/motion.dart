@@ -6,4 +6,6 @@ library;
 export 'app_curves.dart';
 export 'app_motion.dart';
 export 'motion_effects.dart';
+export 'motion_pressable.dart';
+export 'motion_tab_view.dart';
 export 'motion_transition.dart';

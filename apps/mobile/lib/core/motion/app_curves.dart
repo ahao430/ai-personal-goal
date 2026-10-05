@@ -13,4 +13,12 @@ abstract final class AppCurves {
 
   /// 数字滚动等长时间插值。
   static const Cubic count = Curves.easeOut;
+
+  /// 切换动效 · 进入段（Material emphasized decelerate）：
+  /// 快速启动、长尾缓停，用于页面/Tab 切换的 incoming。
+  static const Cubic switchIn = Cubic(0.05, 0.7, 0.1, 1.0);
+
+  /// 切换动效 · 退出段（Material emphasized accelerate）：
+  /// 缓慢启动、快速离场，用于切换的 outgoing。
+  static const Cubic switchOut = Cubic(0.3, 0.0, 0.8, 0.15);
 }

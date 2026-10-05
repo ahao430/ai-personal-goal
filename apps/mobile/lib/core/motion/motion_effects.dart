@@ -9,13 +9,20 @@ import 'app_motion.dart';
 /// 页面不要手写 `.fadeIn(duration: ...)` 这类零散参数，
 /// 一律使用这里的预设，保证全 App 动画语言一致。
 abstract final class MotionEffects {
-  /// 单元素入场：淡入 + 轻微上移。
+  /// 单元素入场：淡入 + 轻微上移 + 轻微放大。
   static Widget entrance(Widget child, {Duration? delay}) => child
       .animate(delay: delay ?? Duration.zero)
       .fadeIn(duration: AppMotion.normal, curve: AppCurves.standard)
-      .slideY(begin: 0.06, end: 0, duration: AppMotion.normal, curve: AppCurves.standard);
+      .slideY(begin: 0.06, end: 0, duration: AppMotion.normal, curve: AppCurves.standard)
+      .scale(
+        alignment: Alignment.bottomCenter,
+        begin: const Offset(0.985, 0.985),
+        end: const Offset(1, 1),
+        duration: AppMotion.normal,
+        curve: AppCurves.standard,
+      );
 
-  /// 列表错位入场：逐项淡入 + 上移。
+  /// 列表错位入场：逐项淡入 + 上移 + 放大（底部对齐，浮起感）。
   static List<Widget> staggerIn(
     List<Widget> children, {
     Duration interval = AppMotion.staggerInterval,
@@ -24,6 +31,13 @@ abstract final class MotionEffects {
           .animate(interval: interval)
           .fadeIn(duration: AppMotion.normal, curve: AppCurves.standard)
           .slideY(begin: 0.1, end: 0, duration: AppMotion.normal, curve: AppCurves.standard)
+          .scale(
+            alignment: Alignment.bottomCenter,
+            begin: const Offset(0.98, 0.98),
+            end: const Offset(1, 1),
+            duration: AppMotion.normal,
+            curve: AppCurves.standard,
+          )
           .toList();
 
   /// 完成 / 达成强调：轻微放大回弹（用于勾选、徽章）。
